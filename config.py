@@ -20,6 +20,10 @@ DIR_NAMES = {
     
 }
 
+OUT_DIRS = {
+    "dres": "./out/dres"
+}
+
 TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
 TASKS_STARTS = os.path.join(DATA_DIR, "eval-server-tasks-starts.log")
 
@@ -34,3 +38,6 @@ def name(instance_idx):
 
 def dir_names():
     return DIR_NAMES
+
+def out_dir(name):
+    return OUT_DIRS[name]      
