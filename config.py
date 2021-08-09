@@ -20,6 +20,9 @@ DIR_NAMES = {
     
 }
 
+THUMBS_DIR = "./thumbs/"
+THUMBS_LIST_DIR = DATA_DIR + "thumbs.txt"
+
 OUT_DIRS = {
     "dres": "./out/dres"
 }
@@ -42,3 +45,9 @@ def dir_names():
 
 def out_dir(name):
     return OUT_DIRS[name]      
+
+def thumbs_dir():
+    return THUMBS_DIR     
+
+def thumbs_list_filepath():
+    return THUMBS_LIST_DIR     

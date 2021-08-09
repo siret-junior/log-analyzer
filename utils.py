@@ -1,8 +1,17 @@
 import datetime
+from IPython.display import Image, display, HTML
 
 
-def UNIX_from_datetime(datetime):
-    pass
+def make_html(src):
+     return '<img src="{}" style="max-width:100px;display:inline;margin:1px"/>'.format(src)
+
+def print_images_row(images):
+
+    s = ""
+    for x in images:
+        s += make_html(x)
+
+    display(HTML(s))
 
 
 def UNIX_from_datetime(dtstr):
