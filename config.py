@@ -25,7 +25,8 @@ OUT_DIRS = {
 }
 
 TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
-TASKS_STARTS = os.path.join(DATA_DIR, "eval-server-tasks-starts.log")
+TASKS_STARTS = os.path.join(DATA_DIR, "eval-server-tasks-starts.csv")
+TASK_MAPPING = os.path.join(DATA_DIR, "mediaItems.csv")
 
 def path(name):
     if (name in INSTANCES):
