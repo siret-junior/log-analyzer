@@ -3,6 +3,7 @@ import pickle
 import datetime
 from IPython.display import Image, display, HTML
 import shutil
+import config
 
 def save_obj(filepath, obj):
     dir = os.path.dirname(filepath)
@@ -55,3 +56,25 @@ def find_task_def(json, name):
             return t
 
     return None
+
+def generate_catype(cats, types):
+    return ".".join(sorted(cats)) + "__" + ".".join(sorted(types))
+
+
+def catype_to_features(catype):
+    if not (catype in config.catypes_to_features()):
+        raise Exception("Catype does not exist!")
+    
+    return config.catypes_to_features(catype)
+
+def extract_text_query(text):
+    if not (text.startswith("|results|")):
+        return None
+    
+    t = text[9:]
+    i = t.find(";")
+    
+    t = t[0:i]
+    
+    xx = [x.strip() for x in t.split(">>")]
+    return xx

@@ -32,6 +32,64 @@ TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
 TASKS_STARTS = os.path.join(DATA_DIR, "eval-server-tasks-starts.csv")
 TASK_MAPPING = os.path.join(DATA_DIR, "mediaItems.csv")
 
+
+FEATURES = {
+    "I": "initial",
+    "TQ": "text-query",
+    "TQ": "temporal-text-query",
+    "LK": "like",
+    "TQR": "text-query-relocation",
+    "TTQR": "temporal-text-query-relocation",
+    "CTQ": "canvas-text-query",
+    "TCTQ": "temporal-canvas-text-query",
+    "CBQ": "canvas-bitmap-query",
+    "TCBQ": "temporal-canvas-bitmap-query",
+    "FDP": "filter-dataset-part",
+    "NN": "nearest-neighbours"
+}
+
+CATYPES_TO_FEATURES = {
+	"filter.image__feedbackModel.textQueryRelocation": ["TQR", "LK", "FDP"],
+    "filter.image__feedbackModel.temporal.textQueryRelocation": ["TTQR", "LK", "FDP"],
+	"filter.image__textQueryRelocation": ["TQR", "FDP"],
+    "filter.image__temporal.textQueryRelocation": ["TTQR", "FDP"],
+	"filter.image.text__feedbackModel.jointEmbedding": ["LK", "TQ", "FDP"],
+    "filter.image.text__feedbackModel.jointEmbedding.temporal": ["LK", "TTQ", "FDP"],
+	"filter.text__jointEmbedding": ["TQ"],
+    "filter.text__jointEmbedding.temporal": ["TTQ"],
+	"image__feedbackModel.localizedObjectBitmap": ["CBQ", "LK"],
+    "image__feedbackModel.localizedObjectBitmap.temporal": ["TCBQ", "LK"],
+    "image__feedbackModel.textQueryRelocation": ["TQR", "LK"],
+    "image__feedbackModel.temporal.textQueryRelocation": ["TTQR", "LK"],
+	"image__globalFeatures": ["NN"],
+    "image__feedbackModel": ["LK"],
+    "image__localizedObjectBitmap": ["CBQ"],
+    "image__localizedObjectBitmap.temporal": ["TCBQ"],
+	"image__textQueryRelocation": ["TQR"],
+    "image__temporal.textQueryRelocation": ["TTQR"],
+	"image.text__feedbackModel.jointEmbedding": ["LK", "TQ"],
+    "image.text__feedbackModel.jointEmbedding.temporal": ["LK", "TTQ"],
+	"image.text__feedbackModel.jointEmbedding.textQueryRelocation": ["LK", "TQR"],
+    "image.text__feedbackModel.jointEmbedding.temporal.textQueryRelocation": ["LK", "TTQR"],
+	"image.text__feedbackModel.localizedObjectText": ["CTQ", "LK"],
+    "image.text__feedbackModel.localizedObjectText.temporal": ["TCTQ", "LK"],
+	"image.text__jointEmbedding.textQueryRelocation": ["TQR"],
+    "image.text__jointEmbedding.temporal.textQueryRelocation": ["TTQR"],
+	"initial__initial": ["I"],
+	"text__jointEmbedding": ["TQ"],
+    "text__jointEmbedding.temporal": ["TTQ"],
+	"text__jointEmbedding.localizedObjectText": ["TQ", "CTQ"],
+    "text__jointEmbedding.localizedObjectText.temporal": ["TCTQ"],
+	"text__localizedObjectText": ["CTQ"],
+    "text__localizedObjectText.temporal": ["TCTQ"]
+}
+
+def names_features(x):
+    return FEATURES[x]
+
+def catypes_to_features(x):
+    return CATYPES_TO_FEATURES[x]
+
 def path(name):
     if (name in INSTANCES):
         return os.path.join(DATA_DIR, name)
@@ -55,3 +113,4 @@ def cache_dir(team = "", user=""):
 
 def thumbs_list_filepath():
     return THUMBS_LIST_DIR     
+
