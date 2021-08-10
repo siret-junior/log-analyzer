@@ -1,4 +1,5 @@
 __pycache__
+__cache__
 data
 .ipynb_checkpoints
 out

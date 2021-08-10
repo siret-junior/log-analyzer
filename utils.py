@@ -1,5 +1,19 @@
+import os
+import pickle
 import datetime
 from IPython.display import Image, display, HTML
+import shutil
+
+def save_obj(filepath, obj):
+    dir = os.path.dirname(filepath)
+    os.makedirs(dir, exist_ok=True)
+
+    with open( filepath, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(filepath ):
+    with open(filepath, 'rb') as f:
+        return pickle.load(f)
 
 
 def make_html(src):

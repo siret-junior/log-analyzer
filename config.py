@@ -20,6 +20,7 @@ DIR_NAMES = {
     
 }
 
+CACHE_DIR = "./__cache__/"
 THUMBS_DIR = "./thumbs/"
 THUMBS_LIST_DIR = DATA_DIR + "thumbs.txt"
 
@@ -48,6 +49,9 @@ def out_dir(name):
 
 def thumbs_dir():
     return THUMBS_DIR     
+
+def cache_dir(team = "", user=""):
+    return os.path.join(CACHE_DIR, team, user)  
 
 def thumbs_list_filepath():
     return THUMBS_LIST_DIR     
