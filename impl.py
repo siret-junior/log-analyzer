@@ -116,6 +116,11 @@ class UserResults:
 class Results:
     def __init__(self):
         self._results = {}
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
         
         
     def push_user_results(self, team, user, results):
@@ -433,7 +438,7 @@ class Data:
             print(f"\t from: {cached_file}")
 
             x = utils.load_obj(cached_file)
-            self._results[team_name] = x
+            self._results._results[team_name] = x
         else:
             
             for user_name in team_names:
