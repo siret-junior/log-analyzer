@@ -36,7 +36,7 @@ TASK_MAPPING = os.path.join(DATA_DIR, "mediaItems.csv")
 FEATURES = {
     "I": "initial",
     "TQ": "text-query",
-    "TQ": "temporal-text-query",
+    "TTQ": "temporal-text-query",
     "LK": "like",
     "TQR": "text-query-relocation",
     "TTQR": "temporal-text-query-relocation",
@@ -114,3 +114,10 @@ def cache_dir(team = "", user=""):
 def thumbs_list_filepath():
     return THUMBS_LIST_DIR     
 
+g_queries = set()
+
+def queries():
+    return g_queries
+
+def push_query(q):
+    g_queries.add(q)

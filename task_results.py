@@ -14,6 +14,118 @@ import config
 import utils
 
 
+
+
+class SubmitPoint:
+    def __init__(self, c, ts, elapsed):
+        self._class = c
+
+        self._ts = ts
+        self._elapsed = elapsed
+
+    def elapsed(self):
+        return self._elapsed
+
+    def timestamp(self):
+        return self._ts
+
+    def c(self):
+        return self._class
+
+    def __str__(self):
+        s = f">>> {(self.elapsed() / 1000):.2f} <<<\n"
+        s += f"- {self.c()} -\n"
+        s += f"------------------------\n"
+        return s
+
+class SubmitPointsArrays:
+    def __init__(self, submits):
+        self._class = []
+        self._ts = []
+        self._elapsed = []
+
+        for p in submits:
+            self._class.append(p.c())
+            self._ts.append(p.timestamp())
+            self._elapsed.append(p.elapsed())
+
+
+    def elapsed(self):
+        return self._elapsed
+
+    def timestamp(self):
+        return self._timestamp
+
+    def c(self):
+        return self._class
+
+    def __str__(self):
+        s = "_elapsed:\n"
+        s += self.elapsed().__str__() + "\n"
+
+        s += "_class:\n"
+        s += self.c().__str__() + "\n"
+
+        return s
+
+class ResultPointsArrays:
+    def __init__(self, points):
+        self._class = []
+
+        self._ts = []
+        self._elapsed = []
+        self._pos_vid = []
+        self._pos_fr = []
+        self._num_reported = []
+
+        self.submit_times = []
+        self.submit_type = []
+
+        for p in points:
+            self._class.append(p.c())
+            self._ts.append(p.timestamp())
+            self._elapsed.append(p.elapsed())
+
+            a, b, c = p.positions()
+
+            self._pos_vid.append(a)
+            self._pos_fr.append(b)
+            self._num_reported.append(c)
+
+    def elapsed(self):
+        return self._elapsed
+
+    def timestamp(self):
+        return self._timestamp
+
+    def c(self):
+        return self._class
+
+    def vid(self):
+        return self._pos_vid
+
+    def fr(self):
+        return self._pos_fr
+
+    def reported(self):
+        return self._num_reported
+
+
+    def __str__(self):
+        s = "_elapsed:\n"
+        s += self.elapsed().__str__() + "\n"
+
+        s += "_class:\n"
+        s += self.c().__str__() + "\n"
+
+        s += "_video:\n"
+        s += self.vid().__str__() + "\n"
+
+        s += "_frame:\n"
+        s += self.fr().__str__() + "\n"
+
+        return s
+
 class ResultPoint:
     def __init__(self, c, ts, elapsed, value, pos_vid, pos_fr, num_reported):
         self._class = c
@@ -30,7 +142,7 @@ class ResultPoint:
         return self._elapsed
 
     def timestamp(self):
-        return self._timestamp
+        return self._ts
 
     def c(self):
         return self._class
@@ -53,7 +165,12 @@ class ResultPoint:
 class TaskResults:
     def __init__(self, tasks):
         self._tasks = tasks
+        
         self._task_results = {}
+        self._task_results_arrays = {}
+        self._submits = {}
+        self._submits_arrays = {}
+
         self._classes = {}
         self._queries = {}
 
@@ -73,6 +190,32 @@ class TaskResults:
         else:
             return self._classes
 
+    def task_submits_arrays(self, team=None, user=None):
+        if (user != None):
+            return self._submits_arrays[team][user]
+        elif (team != None):
+            return self._submits_arrays[team]
+        else:
+            return self._submits_arrays
+
+    
+    def task_submits(self, team=None, user=None):
+        if (user != None):
+            return self._submits[team][user]
+        elif (team != None):
+            return self._submits[team]
+        else:
+            return self._submits
+
+    def task_results_arrays(self, team=None, user=None):
+        if (user != None):
+            return self._task_results_arrays[team][user]
+        elif (team != None):
+            return self._task_results_arrays[team]
+        else:
+            return self._task_results_arrays
+
+    
     def task_results(self, team=None, user=None):
         if (user != None):
             return self._task_results[team][user]
@@ -101,6 +244,86 @@ class TaskResults:
                     s += f"\t\t--------------------\n\n"
                 
         return s
+
+    def print_submits(self, teams=None, users=None, tasks=None):
+        print("***############################***")
+        print("***###***TASK SUBMITS ***###***")
+        print("***############################***")
+
+        for team, team_dict in self.task_submits().items():
+            if ((teams != None) and (not (team in teams))):
+                continue
+            
+            print(f"--- {team} ---")
+            for user, user_results in team_dict.items():
+                if ((users != None) and (not (user in users))):
+                    continue
+                    
+                print(f"\t--- {user} ---")
+                for task_name, points in user_results.items():
+                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                        continue
+                    
+                    print(f"\t\t--- {task_name} ---\n")
+                    #todo
+                    for p in points:
+                        print(p)
+
+                    print(f"\t\t--------------------\n")
+                    
+        print("***############################***")
+
+    def print_submits_arrays(self, teams=None, users=None, tasks=None):
+        print("***############################***")
+        print("***###*** SUBMITS ARRAYS ***###***")
+        print("***############################***")
+
+        for team, team_dict in self.task_submits_arrays().items():
+            if ((teams != None) and (not (team in teams))):
+                continue
+            
+            print(f"--- {team} ---")
+            for user, user_results in team_dict.items():
+                if ((users != None) and (not (user in users))):
+                    continue
+                    
+                print(f"\t--- {user} ---")
+                for task_name, points in user_results.items():
+                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                        continue
+
+                    print(f"\t\t--- {task_name} ---")
+
+                    print(points)
+
+                    print(f"\t\t--------------------\n")
+                    
+        print("***############################***")
+
+
+    def print_arrays(self, teams=None, users=None, tasks=None):
+        print("***############################***")
+        print("***###***  RESULT ARRAYS ***###***")
+        print("***############################***")
+
+        for team, team_dict in self.task_results_arrays().items():
+            if ((teams != None) and (not (team in teams))):
+                continue
+            
+            print(f"--- {team} ---")
+            for user, user_results in team_dict.items():
+                if ((users != None) and (not (user in users))):
+                    continue
+                    
+                print(f"\t--- {user} ---")
+                for task_name, points in user_results.items():
+                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                        continue
+                    
+                    print(points)
+                    print(f"\t\t--------------------\n")
+                    
+        print("***############################***")
 
     def print(self, teams=None, users=None, tasks=None):
         print("***############################***")
@@ -145,7 +368,6 @@ class TaskResults:
                 ccc = ", ".join(sorted([config.names_features(x) for x in cc]))
                 print(f"\t{cc} -> { ccc }")
     # ---
-
     def validate_and_fix_log(self, r):
         cats = r["usedCategories"]
         types = r["usedTypes"]
@@ -162,21 +384,21 @@ class TaskResults:
         # Add "temporal" if temporal
         if ("text" in r["usedCategories"] and "jointEmbedding" in r["usedTypes"]):
             qs = utils.extract_text_query(val)
-            #print(qs) 
+            config.push_query(">>".join(qs))
 
             if (qs != None and len(qs) >=2):
                 if (qs[0] != "") and (qs[1] != ""):
                     #print("TEMP")
                     r["usedTypes"].append("temporal")
-
         
-    def push_user_results(self, team, user, results):
+    def push_user_submits(self, team, user, submits):
 
-        if (not team in self._task_results):
-            self._task_results[team] = {}
-            self._classes[team] = set()
+        if (not team in self._submits):
+            self._submits[team] = {}
+            self._submits_arrays[team] = {}
         
-        self._task_results[team][user] = {}
+        self._submits[team][user] = {}
+        self._submits_arrays[team][user] = {}
         
         i = 0
         for task in self._tasks.tasks():
@@ -185,7 +407,63 @@ class TaskResults:
             t_start, t_end = task.timestamps()
             t_target = task.target()
             
-            self._task_results[team][user][f"{i:02d}_{t_name}"] = []
+            full_t_name = t_name
+
+            self._submits[team][user][full_t_name] = []
+            self._submits_arrays[team][user][full_t_name] = []
+
+            for r in submits.submits():
+                ts = r["timestamp"]
+                
+                # Does it lie in this task?
+                if (t_start > ts or ts > t_end):
+                    continue
+                
+                elapsed = round((ts - t_start) / 1000, 2)
+
+                c = None
+
+                if (r["response"] == None):
+                    c = "TIMEOUT"
+                elif (r["response_code"] == 404):
+                    c = "SERVER_LAG"
+                elif ("submission" in r["response"]):
+                        
+                        if (r["response"]["submission"] == "CORRECT"):
+                            c = "T"
+                        elif (r["response"]["submission"] == "INDETERMINATE"):
+                            c = "I"
+                        else:
+                            c = "F"
+
+                s = SubmitPoint(c, ts, elapsed)
+
+                self._submits[team][user][full_t_name].append(s)
+
+            pts = SubmitPointsArrays(self._submits[team][user][full_t_name])
+            self._submits_arrays[team][user][full_t_name] = pts
+
+    def push_user_results(self, team, user, results):
+
+        if (not team in self._task_results):
+            self._task_results[team] = {}
+            self._task_results_arrays[team] = {}
+            self._classes[team] = set()
+        
+        self._task_results[team][user] = {}
+        self._task_results_arrays[team][user] = {}
+        
+        i = 0
+        for task in self._tasks.tasks():
+            i+=1
+            t_name = task.name()
+            t_start, t_end = task.timestamps()
+            t_target = task.target()
+            
+            full_t_name = t_name
+
+            self._task_results[team][user][full_t_name] = []
+            self._task_results_arrays[team][user][full_t_name] = []
 
             for r in results.results():
                 ts = r["timestamp"]
@@ -210,8 +488,11 @@ class TaskResults:
                 pos_vid, pos_fr, rep = self.determine_positions(frames, t_target)
                                 
                 p = ResultPoint(c, ts, elapsed, values, pos_vid, pos_fr, rep)
-                
-                self._task_results[team][user][f"{i:02d}_{t_name}"].append(p)
+
+                self._task_results[team][user][full_t_name].append(p)
+
+            pts = ResultPointsArrays(self._task_results[team][user][full_t_name])
+            self._task_results_arrays[team][user][full_t_name] = pts
 
     def determine_positions(self, xs, target):
 

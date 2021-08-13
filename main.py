@@ -8,12 +8,14 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 # ---
 import config
+from constants import *
 import utils
+
 from raw_log_types import *
 from results import *
 from tasks import *
 from task_results import *
-
+from submits import *
 
 class VbsVis:
     def __init__(self):
@@ -32,8 +34,15 @@ class VbsVis:
     def task_results(self):
         return self._task_results
 
+    def task_results(self):
+        return self._task_results
+
     def results(self):
         return self._results
+
+    def tasks(self):
+        return self._tasks
+   
 
     # ---
 
@@ -45,6 +54,19 @@ class VbsVis:
 
     def print_task_results(self, teams=None, users=None, tasks=None):
         self.task_results().print(teams, users, tasks)
+
+    def print_task_results_arrays(self, teams=None, users=None, tasks=None):
+        self.task_results().print_arrays(teams, users, tasks)
+
+    def print_task_submits(self, teams=None, users=None, tasks=None):
+        self.task_results().print_submits(teams, users, tasks)
+
+    def print_task_submits_arrays(self, teams=None, users=None, tasks=None):
+        self.task_results().print_submits_arrays(teams, users, tasks)
+
+    def print_queries(self):
+        for q in config.queries():
+            print(q)
 
     # ---
 
@@ -86,7 +108,7 @@ class VbsVis:
         self.verbose = False
 
     def parse_results(self, team_name: str, team_names: list):
-        print("%%% PARSING RESULTS %%%")
+        print("%%% PARSING RESULTS & SUBMITS %%%")
         cached_file = os.path.join(config.cache_dir(team_name), "results.pkl")
         cached_file2 = os.path.join(config.cache_dir(team_name),"task-results.pkl")
         cached_file3 = os.path.join(config.cache_dir(team_name),"queries.pkl")
@@ -120,6 +142,7 @@ class VbsVis:
                 path = config.path(user_name)
                 print("---\n\t +++ {} +++ \n\tDATA: {} \n".format(user_name, path))
                 self.parse_user_results(team_name, user_name, path)
+                self.parse_user_submits(team_name, user_name, path)
 
             utils.save_obj(cached_file, self._results.results(team_name))
             utils.save_obj(cached_file2, self._task_results.task_results(team_name))
@@ -169,21 +192,40 @@ class VbsVis:
 
         return mins
 
+    def parse_user_submits(self, team, user_name, path):
+        print("\t\t--- PARSING SUBMITS. ---")
+        dir = config.dir_names()["requests"]
+        full_path = os.path.join(path, dir)
+
+        submits = []
+
+        for filename in os.listdir(full_path):
+            if not (filename.endswith("submit.json")):
+                continue
+
+            log = JsonLog.parse_file(full_path, filename)
+            submits += log
+
+        us = UserSubmits(submits)
+        
+        self._task_results.push_user_submits(team, user_name, us)
+        print("\t\t--- DONE. ---")
+
     def parse_user_results(self, team, user_name, path):
+        print("\t\t--- PARSING TASK RESULTS. ---")
         dir = config.dir_names()["results"]
         full_path = os.path.join(path, dir)
 
         results = []
 
         for filename in os.listdir(full_path):
-
             log = JsonLog.parse_file(full_path, filename)
             results += log
 
         r = UserResults(results)
         self._results.push_user_results(team, user_name, r)
         self._task_results.push_user_results(team, user_name, r)
-        print("\t--- DONE. ---")
+        print("\t\t--- DONE. ---")
 
     def generate_DRES_logs(self, team_name: str, team_names: list):
         print("%%% GENERATING DRES LOG FILES %%%")

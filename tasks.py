@@ -35,18 +35,23 @@ class TaskTarget:
 
 class Task:
     def __init__(self,
+                 i,
                  name,
                  type,
                  from_ts,
                  to_ts,
+                 duration,
                  text=None,
                  target: TaskTarget = None):
-        self._name = name
+
+        self._name = f"{i:02d}_{name}"
 
         # type \in { A, V, T }
         self._type = type
         self._from_ts = from_ts
         self._to_ts = to_ts
+
+        self._duration = duration
 
         self._text = text
         self._target = target
@@ -65,6 +70,9 @@ class Task:
 
     def timestamps(self):
         return (self._from_ts, self._to_ts)
+
+    def duration(self):
+        return self._duration
 
     def times(self):
         tss = self.timestamps()
@@ -154,7 +162,7 @@ class TaskDefs:
 
             print("------------------------------------")
 
-    def filename(v_ID, fnum):
+    def filename(self, v_ID, fnum):
         return self.thumbs[v_ID][fnum]
 
     def filenames(self, v_ID, fr, to, limit=5):
@@ -202,12 +210,15 @@ class TaskDefs:
                 if (verbose):
                     print("\t ...Task {} parsed.".format(t_name))
 
+
+                
                 t = utils.find_task_def(tasks_JSON, t_name)
+                t_dur = t["duration"] * 1000
                 t_datetime = "{}T{}".format(row[0], row[1])
 
                 t_type = t["taskType"][0:1]
                 t_tsfrom = utils.UNIX_from_datetime(t_datetime)
-                t_tsto = t_tsfrom + (t["duration"] * 1000)  #ms
+                t_tsto = t_tsfrom + t_dur
 
                 text = None
                 if (t_type == "T"):
@@ -236,7 +247,7 @@ class TaskDefs:
 
                     t_target = TaskTarget(vid_ID, fr, to)
 
-                task = Task(t_name, t_type, t_tsfrom, t_tsto, text, t_target)
+                task = Task(count, t_name, t_type, t_tsfrom, t_tsto, (t_dur / 1000.0), text, t_target)
                 tdefs._tasks.append(task)
 
         print(f"%%% Parsed {count} tasks. %%%")
