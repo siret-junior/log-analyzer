@@ -35,9 +35,9 @@ class SubmitPoint:
         return self._class
 
     def __str__(self):
-        s = f">>> {(self.elapsed() / 1000):.2f} <<<\n"
+        s = f"--->>> {self.elapsed()} --->>>\n"
+        s += f"- SUBMIT REQUEST-\n"
         s += f"- {self.c()} -\n"
-        s += f"------------------------\n"
         return s
 
 class SubmitPointsArrays:
@@ -159,11 +159,10 @@ class ResultPoint:
         return (self._pos_vid, self._pos_fr, self._num_reported)
 
     def __str__(self):
-        s = f">>> {(self.elapsed() / 1000):.2f} <<<\n"
-        s += f"- {self.c()} -\n"
-        s += f"- {self.positions()} -\n"
-        s += f"------------------------\n"
-        #s += f"- {self.value()} -\n"
+        s = f"\t\t###!!!### {(self.elapsed() / 1000):.2f} ###!!!###\n"
+        s += f"\t\t- REPORT RESULTS -\n"
+        s += f"\t\t- {self.c()} -\n"
+        s += f"\t\t- {self.positions()} -\n"
         return s
 
 
@@ -204,9 +203,19 @@ class TaskResults:
             return self._submits_arrays
 
     
-    def task_submits(self, team=None, user=None):
-        if (user != None):
+    def task_submits(self, team=None, user=None, task=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+        if (task != None):
+            res = []
+
+            for a in self._submits[team][user][task]:
+                a_el = a.elapsed()
+                a_ts = a.timestamp()
+                if  (timestamp[0] <= a_ts and a_ts <= timestamp[1]) and (time[0] <= a_el and a_el <= time[1]):
+                    res.append(a)
+            return res
+        elif (user != None):
             return self._submits[team][user]
+
         elif (team != None):
             return self._submits[team]
         else:
@@ -221,9 +230,19 @@ class TaskResults:
             return self._task_results_arrays
 
     
-    def task_results(self, team=None, user=None):
-        if (user != None):
+    def task_results(self, team=None, user=None, task=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+        if (task != None):
+            res = []
+
+            for a in self._task_results[team][user][task]:
+                a_el = a.elapsed()
+                a_ts = a.timestamp()
+                if  (timestamp[0] <= a_ts and a_ts <= timestamp[1]) and (time[0] <= a_el and a_el <= time[1]):
+                    res.append(a)
+            return res
+        elif (user != None):
             return self._task_results[team][user]
+
         elif (team != None):
             return self._task_results[team]
         else:
@@ -483,12 +502,12 @@ class TaskResults:
                 # Fix some logs
                 self.validate_and_fix_log(r)
                 
-                elapsed = ts - t_start
+                elapsed = round((ts - t_start) / 1000, 2)
 
                 #
                 # Cut logs after the submit
                 #
-                if ((elapsed/1000.0) > eartliest_submit_time):
+                if (elapsed > eartliest_submit_time):
                     break
 
                 cats = r["usedCategories"]
@@ -508,7 +527,7 @@ class TaskResults:
 
             if prev != None:
                 prev = copy.deepcopy(prev)
-                prev._elapsed = eartliest_submit_time * 1000
+                prev._elapsed = eartliest_submit_time
                 self._task_results[team][user][full_t_name].append(prev)
 
             team_user_task_result_points = self._task_results[team][user][full_t_name]

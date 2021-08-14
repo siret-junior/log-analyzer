@@ -73,6 +73,40 @@ class VbsVis:
    
     # --- Printers
 
+    def print_task_course(self, teams=None, users=None, tasks=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+        print("***############################***")
+        print("***###*** TASK COURSES ***###***")
+        print("***############################***")
+        for team, team_dict in self.summaries().summaries().items():
+            if ((teams != None) and (not (team in teams))):
+                continue
+            
+            print(f"--- {team} ---")
+            for user, task_actions in team_dict.items():
+                if ((users != None) and (not (user in users))):
+                    continue
+                    
+                print(f"\t--- {user} ---")
+                for task_name, actions in task_actions.items():
+                    if ((tasks != None) and (not (task_name in tasks))):
+                        continue
+                    
+                    print(f"\t\t--- {task_name} ---\n")
+
+                    actions = list(map(lambda x: (x.elapsed(), x), self.summaries().summary(team, user, task_name, time, timestamp)))
+                    task_results = list(map(lambda x: (x.elapsed(), x), self.task_results().task_results(team, user, task_name, time, timestamp)))
+                    submits = list(map(lambda x: (x.elapsed(), x), self.task_results().task_submits(team, user, task_name, time, timestamp)))
+
+                    all = sorted(actions + submits + task_results, key= lambda x: x[0])
+                    
+                    for x in all:
+                        if isinstance(x, SummaryPoint):
+                            print(x[1])
+                        elif isinstance(x, ResultPoint):
+                            print(x[1])
+                        else:
+                            print(x[1])
+
     def print_tasks(self, tasks=None):
         self._tasks.print(tasks)
 
@@ -81,6 +115,9 @@ class VbsVis:
 
     def print_tool_features(self, teams=None):
         self.task_results().print_features(teams)
+
+    def print_summary(self, teams=None, users=None, tasks=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+        self.summaries().print(teams, users, tasks, time, timestamp)
 
     def print_task_results(self, teams=None, users=None, tasks=None):
         self.task_results().print(teams, users, tasks)

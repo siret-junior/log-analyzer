@@ -25,7 +25,8 @@ THUMBS_DIR = "./thumbs/"
 THUMBS_LIST_DIR = DATA_DIR + "thumbs.txt"
 
 OUT_DIRS = {
-    "dres": "./out/dres"
+    "dres": "./out/dres",
+    "timelines": "./out/timelines"
 }
 
 TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
@@ -103,6 +104,9 @@ def dir_names():
     return DIR_NAMES
 
 def out_dir(name):
+    if not (os.path.exists(OUT_DIRS[name])):
+        os.makedirs(OUT_DIRS[name], exist_ok=True)
+        
     return OUT_DIRS[name]      
 
 def thumbs_dir():
