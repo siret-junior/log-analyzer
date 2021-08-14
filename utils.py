@@ -4,7 +4,7 @@ import datetime
 from IPython.display import Image, display, HTML
 import shutil
 import config
-
+import json
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -104,3 +104,25 @@ def determine_submit_result(r):
                 c = "F"
 
     return c
+
+
+def cache_index_get(team_name):
+    cache_indexf_fpth = config.cache_index_file()
+    cache_index = None
+    with open(cache_indexf_fpth) as ifs:
+        cache_index = json.load(ifs)
+
+    return team_name in cache_index and cache_index[team_name]
+
+
+def cache_index_set(team_name):
+    cache_indexf_fpth = config.cache_index_file()
+    cache_index = None
+    with open(cache_indexf_fpth) as ifs:
+        cache_index = json.load(ifs)
+
+    cache_index[team_name] = True
+
+    with open(cache_indexf_fpth, "w") as ofs:
+        str = json.dumps(cache_index)
+        ofs.write(str)

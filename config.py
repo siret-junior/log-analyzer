@@ -111,6 +111,12 @@ def thumbs_dir():
 def cache_dir(team = "", user=""):
     return os.path.join(CACHE_DIR, team, user)  
 
+def cache_index_file():
+    """
+    Return filepath to the file where cached pieces are flaged.
+    """
+    return os.path.join(CACHE_DIR, "index.json")  
+
 def thumbs_list_filepath():
     return THUMBS_LIST_DIR     
 

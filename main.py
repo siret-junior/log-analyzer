@@ -20,17 +20,36 @@ from summary import *
 
 class VbsVis:
     def __init__(self):
-        self.verbose = False
-        self._tasks = TaskDefs.parse_tasks(config.TASKS_JSON,
-                                           config.TASKS_STARTS,
-                                           config.TASK_MAPPING,
-                                           config.thumbs_list_filepath(),
-                                           verbose=self.verbose)
 
-        self._raw_summaries = RawSummaries()
-        self._summaries = Summaries(self._tasks)
-        self._results = Results()
-        self._task_results = TaskResults(self._tasks)
+        # Load cached if available
+        cached_file = os.path.join(config.cache_dir(), "vbs.pkl") 
+        if (os.path.exists(cached_file)):
+            print(f"Loading cached instance from {cached_file}...")
+            cached_instance = utils.load_obj(cached_file)
+
+            # pp.pprint(vars(cached_instance))
+        
+            self.verbose = cached_instance.verbose
+            self._tasks = cached_instance._tasks
+            self._raw_summaries = cached_instance._raw_summaries
+            self._summaries = cached_instance._summaries
+            self._results = cached_instance._results
+            self._task_results = cached_instance._task_results
+
+
+        # Else load everything
+        else:
+            self.verbose = False
+            self._tasks = TaskDefs.parse_tasks(config.TASKS_JSON,
+                                            config.TASKS_STARTS,
+                                            config.TASK_MAPPING,
+                                            config.thumbs_list_filepath(),
+                                            verbose=self.verbose)
+
+            self._raw_summaries = RawSummaries()
+            self._summaries = Summaries(self._tasks)
+            self._results = Results()
+            self._task_results = TaskResults(self._tasks)
 
     # --- Getters/setters
 
@@ -96,8 +115,12 @@ class VbsVis:
         print("PLOTS:\n")
         print("vbs.plot_timelines()")
         print("\t Plots timelines for all parsed teams/users/tasks.")
-        
-
+    
+    @staticmethod
+    def cache(instance):
+        cached_file = os.path.join(config.cache_dir(), "vbs.pkl")    
+        utils.save_obj(cached_file, instance)
+        print(f"Instance cached to {cached_file}...")
 
     @staticmethod
     def flush_cache():
@@ -120,6 +143,10 @@ class VbsVis:
 
         print("==============\nTEAM: {}\n".format(team_name))
 
+        if (team_name in self.task_results().task_results()):
+            print("??? This team is already parsed. Cached maybe? ???")
+            return
+
         ### main()
         if (validate_fix):
             self.validate_and_fix_input_data(team_name, team_names)
@@ -137,43 +164,18 @@ class VbsVis:
 
     def parse_logs(self, team_name: str, team_names: list):
         print("%%% PARSING %%%")
-        cached_file = os.path.join(config.cache_dir(team_name), "results.pkl")
-        cached_file2 = os.path.join(config.cache_dir(team_name),"task-results.pkl")
-        
-        cached_file4 = os.path.join(config.cache_dir(team_name),"classes.pkl")
 
-        if (os.path.exists(cached_file)):
-            print(">>>!!!<<< Using cached values. >>>!!!<<<")
-            print(f"\t from: {cached_file}")
-
-            x = utils.load_obj(cached_file)
-            self._results._results[team_name] = x
-
-            y = utils.load_obj(cached_file2)
-            self._task_results.task_results()[team_name] = y
-
-            z = utils.load_obj(cached_file3)
-            self._task_results.queries()[team_name] = z
-
-            zz = utils.load_obj(cached_file4)
-            self._task_results.classes()[team_name] = zz
-        else:
-            for user_name in team_names:
-                path = config.path(user_name)
-                print("---\n\t +++ {} +++ \n\tDATA: {} \n".format(user_name, path))
-                self.parse_user_submits(team_name, user_name, path)
-                
-
-            for user_name in team_names:
-                path = config.path(user_name)
-                print("---\n\t +++ {} +++ \n\tDATA: {} \n".format(user_name, path))
-                self.parse_user_summary(team_name, user_name, path, self.task_submits())
-                self.parse_user_results(team_name, user_name, path, self.task_submits(), self.summaries())
-
-            utils.save_obj(cached_file, self._results.results(team_name))
-            utils.save_obj(cached_file2, self._task_results.task_results(team_name))
+        for user_name in team_names:
+            path = config.path(user_name)
+            print("---\n+++ {} +++ \nDATA: {} \n".format(user_name, path))
+            self.parse_user_submits(team_name, user_name, path)
             
-            utils.save_obj(cached_file4, self._task_results.classes(team_name))
+        for user_name in team_names:
+            print("---\n+++ {} +++ \nDATA: {} \n".format(user_name, path))
+            path = config.path(user_name)
+            self.parse_user_summary(team_name, user_name, path, self.task_submits())
+            self.parse_user_results(team_name, user_name, path, self.task_submits(), self.summaries())
+
 
         print("%%% DONE! %%%")
 
@@ -219,7 +221,7 @@ class VbsVis:
         return mins
 
     def parse_user_submits(self, team, user_name, path):
-        print("\t\t--- PARSING SUBMITS. ---")
+        print("\t--- PARSING SUBMITS. ---")
         dir = config.dir_names()["requests"]
         full_path = os.path.join(path, dir)
 
@@ -235,10 +237,10 @@ class VbsVis:
         us = UserSubmits(submits)
         
         self._task_results.push_user_submits(team, user_name, us)
-        print("\t\t--- DONE. ---")
+        print("\t--- DONE. ---")
 
     def parse_user_results(self, team, user_name, path, submits, summaries : Summaries):
-        print("\t\t--- PARSING TASK RESULTS. ---")
+        print("\t--- PARSING TASK RESULTS. ---")
         dir = config.dir_names()["results"]
         full_path = os.path.join(path, dir)
 
@@ -249,12 +251,12 @@ class VbsVis:
             results += log
 
         r = UserResults(results)
-        self._results.push_user_results(team, user_name, r)
+        #self._results.push_user_results(team, user_name, r)
         self._task_results.push_user_results(team, user_name, r, submits, summaries)
-        print("\t\t--- DONE. ---")
+        print("\t--- DONE. ---")
 
     def parse_user_summary(self, team, user_name, path, submits):
-        print("\t\t--- PARSING SUMMARY. ---")
+        print("\t--- PARSING SUMMARY. ---")
         dir = config.dir_names()["summary"]
         full_path = os.path.join(path, dir)
 
@@ -266,7 +268,7 @@ class VbsVis:
 
         self.raw_summaries().push_user_summary(team, user_name, summary_logs)
         self.summaries().push_user_summary(team, user_name, summary_logs, submits)
-        print("\t\t--- DONE. ---")
+        print("\t--- DONE. ---")
 
     def generate_DRES_logs(self, team_name: str, team_names: list):
         print("%%% GENERATING DRES LOG FILES %%%")
