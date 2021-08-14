@@ -1,25 +1,25 @@
 COLORS = {
-    1: "#9833FF",
-    2: "#FF8A38"
+    0: "#9833FF",
+    1: "#FF8A38"
 }
 
-d_marker_random = {1:{"marker": r"$R$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5},
-                   2:{"marker": r"$R$", "markerfacecolor": COLORS[2], "markeredgecolor": COLORS[2], "markersize": 5}}
+d_marker_random = {0:{"marker": r"$R$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
+                   1:{"marker": r"$R$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 
-d_marker_topn = {1:{"marker": r"$T$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5},
-                 2:{"marker": r"$T$", "markerfacecolor": COLORS[2], "markeredgecolor": COLORS[2], "markersize": 5}}
+d_marker_topn = {0:{"marker": r"$T$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
+                 1:{"marker": r"$T$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 
-d_marker_topknn = {1:{"marker": r"$N$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5},
-                   2:{"marker": r"$N$", "markerfacecolor": COLORS[2], "markeredgecolor": COLORS[2], "markersize": 5}}
+d_marker_topknn = {0:{"marker": r"$N$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
+                   1:{"marker": r"$N$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 
-d_marker_som = {1:{"marker": r"$S$", "markerfacecolor": "#000000", "markeredgecolor": "#000000", "markersize": 5},
-                2:{"marker": r"$S$", "markerfacecolor": "#000000", "markeredgecolor": "#000000", "markersize": 5}}
+d_marker_som = {0:{"marker": r"$S$", "markerfacecolor": "#000000", "markeredgecolor": "#000000", "markersize": 5},
+                1:{"marker": r"$S$", "markerfacecolor": "#000000", "markeredgecolor": "#000000", "markersize": 5}}
 
-d_marker_detail = {1:{"marker": r"$D$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5},
-                   2:{"marker": r"$D$", "markerfacecolor": COLORS[2], "markeredgecolor": COLORS[2], "markersize": 5}}
+d_marker_detail = {0:{"marker": r"$D$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
+                   1:{"marker": r"$D$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 
-d_marker_replay = {1:{"marker": r"$P$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5},
-                   2:{"marker": r"$P$", "markerfacecolor": COLORS[2], "markeredgecolor": COLORS[2], "markersize": 5}}
+d_marker_replay = {0:{"marker": r"$P$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
+                   1:{"marker": r"$P$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 
 
 empty_marker = {"marker": ",", "markerfacecolor": "#000000", "markeredgecolor": "#000000", "markersize": 12}

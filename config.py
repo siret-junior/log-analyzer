@@ -121,3 +121,4 @@ def queries():
 
 def push_query(q):
     g_queries.add(q)
+

@@ -5,6 +5,9 @@ from IPython.display import Image, display, HTML
 import shutil
 import config
 
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
 def save_obj(filepath, obj):
     dir = os.path.dirname(filepath)
     os.makedirs(dir, exist_ok=True)
@@ -78,3 +81,26 @@ def extract_text_query(text):
     
     xx = [x.strip() for x in t.split(">>")]
     return xx
+
+
+def determine_submit_result(r):
+    c = None
+
+    if (r["response"] == None):
+        c = "TIMEOUT"
+    elif (r["response_code"] == 404):
+        c = "SERVER_LAG"
+    elif (r["response_code"] == 401):
+        c = "LOGGED_OUT"
+    elif (r["response_code"] == 412):
+        c = "F"
+    elif ("submission" in r["response"]):
+            
+            if (r["response"]["submission"] == "CORRECT"):
+                c = "T"
+            elif (r["response"]["submission"] == "INDETERMINATE"):
+                c = "I"
+            else:
+                c = "F"
+
+    return c

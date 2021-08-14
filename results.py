@@ -50,6 +50,21 @@ class Results:
         else:
             return self._results
     
+    def print_results(self, team, user, fr, to):
+        
+        for r in self._results[team][user].results():
+            ts = r["timestamp"] 
+            # Does it lie in this task?
+            if (fr > ts or ts > to):
+                continue
+            
+            print(r["timestamp"])
+            print(r["values"])
+            print("---")
+
+
+
+
     def __str__(self):
         s = "***############################***\n"
         s += "***###***   RESULT LOGS  ***###***\n"

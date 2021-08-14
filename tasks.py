@@ -126,7 +126,8 @@ class TaskDefs:
             if (t.name() == name):
                 return t
 
-    def print(self):
+
+    def print(self, tasks=None):
         print("***############################***")
         print("***###*** VBS 2021 TASKS ***###***")
         print("***############################***")
@@ -148,6 +149,9 @@ class TaskDefs:
 
         print(">>>>>>>>>>>>> TASKS <<<<<<<<<<<<<<<<")
         for t in self._tasks:
+            if (tasks != None) and (not (t.name() in tasks)):
+                continue
+
             print(t.__str__() + "")
 
             if (t.target() != None):

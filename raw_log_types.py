@@ -22,7 +22,10 @@ class SummaryLog:
     Represents one summary log file.
     """
     def __init__(self):
-        self.data = []
+        self._data = []
+
+    def data(self):
+        return self._data
 
     @staticmethod
     def parse_file(full_path, filename):
@@ -31,15 +34,14 @@ class SummaryLog:
         fpth = os.path.join(full_path, filename)
 
         with open(fpth, 'r') as ifs:
-            line = ifs.readline()
-            while (line):
-                log.parse_line(line)
-                line = ifs.readline()
+            csv_reader = csv.reader(ifs, delimiter='\t')
+            for row in csv_reader:
+                log.parse_line(row)
 
         return log
 
-    def parse_line(self, line):
-        self.data.append(line)
+    def parse_line(self, line:list):
+        self._data.append(line)
 
 
 #

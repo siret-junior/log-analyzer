@@ -1,3 +1,5 @@
+from summary import Summaries
+from tasks import TaskDefs
 import numpy as np
 import csv
 import json
@@ -6,14 +8,14 @@ import datetime
 import matplotlib.pyplot as plt
 import seaborn as sb
 import shutil
-
+import copy
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 import config
 import utils
 
-
+from results import *
 
 
 class SubmitPoint:
@@ -129,6 +131,7 @@ class ResultPointsArrays:
 class ResultPoint:
     def __init__(self, c, ts, elapsed, value, pos_vid, pos_fr, num_reported):
         self._class = c
+        self._changed = None
 
         self._ts = ts
         self._elapsed = elapsed
@@ -137,6 +140,8 @@ class ResultPoint:
         self._pos_vid = pos_vid
         self._pos_fr = pos_fr
         self._num_reported = num_reported
+
+        
 
     def elapsed(self):
         return self._elapsed
@@ -163,7 +168,7 @@ class ResultPoint:
 
 
 class TaskResults:
-    def __init__(self, tasks):
+    def __init__(self, tasks : TaskDefs):
         self._tasks = tasks
         
         self._task_results = {}
@@ -261,7 +266,7 @@ class TaskResults:
                     
                 print(f"\t--- {user} ---")
                 for task_name, points in user_results.items():
-                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                    if ((tasks != None) and (not (task_name in tasks))):
                         continue
                     
                     print(f"\t\t--- {task_name} ---\n")
@@ -289,7 +294,7 @@ class TaskResults:
                     
                 print(f"\t--- {user} ---")
                 for task_name, points in user_results.items():
-                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                    if ((tasks != None) and (not (task_name in tasks))):
                         continue
 
                     print(f"\t\t--- {task_name} ---")
@@ -299,7 +304,6 @@ class TaskResults:
                     print(f"\t\t--------------------\n")
                     
         print("***############################***")
-
 
     def print_arrays(self, teams=None, users=None, tasks=None):
         print("***############################***")
@@ -317,7 +321,7 @@ class TaskResults:
                     
                 print(f"\t--- {user} ---")
                 for task_name, points in user_results.items():
-                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                    if ((tasks != None) and (not (task_name in tasks))):
                         continue
                     
                     print(points)
@@ -341,7 +345,7 @@ class TaskResults:
                     
                 print(f"\t--- {user} ---")
                 for task_name, points in user_results.items():
-                    if ((tasks != None) and (not (task_name[3:] in tasks))):
+                    if ((tasks != None) and (not (task_name in tasks))):
                         continue
                     
                     print(f"\t\t--- {task_name} ---\n")
@@ -414,27 +418,16 @@ class TaskResults:
 
             for r in submits.submits():
                 ts = r["timestamp"]
-                
+                elapsed = round((ts - t_start) / 1000, 2)
+
                 # Does it lie in this task?
                 if (t_start > ts or ts > t_end):
                     continue
-                
-                elapsed = round((ts - t_start) / 1000, 2)
+            
+                c = utils.determine_submit_result(r)
 
-                c = None
-
-                if (r["response"] == None):
-                    c = "TIMEOUT"
-                elif (r["response_code"] == 404):
-                    c = "SERVER_LAG"
-                elif ("submission" in r["response"]):
-                        
-                        if (r["response"]["submission"] == "CORRECT"):
-                            c = "T"
-                        elif (r["response"]["submission"] == "INDETERMINATE"):
-                            c = "I"
-                        else:
-                            c = "F"
+                if (c == None):
+                    pp.pprint(r)
 
                 s = SubmitPoint(c, ts, elapsed)
 
@@ -443,7 +436,9 @@ class TaskResults:
             pts = SubmitPointsArrays(self._submits[team][user][full_t_name])
             self._submits_arrays[team][user][full_t_name] = pts
 
-    def push_user_results(self, team, user, results):
+    def push_user_results(self, 
+        team : str, user : str, 
+        results : UserResults, submits : dict, summaries : Summaries):
 
         if (not team in self._task_results):
             self._task_results[team] = {}
@@ -457,25 +452,45 @@ class TaskResults:
         for task in self._tasks.tasks():
             i+=1
             t_name = task.name()
+            t_type = task.type()
             t_start, t_end = task.timestamps()
             t_target = task.target()
-            
+            t_dur = task.duration()
+
             full_t_name = t_name
 
             self._task_results[team][user][full_t_name] = []
             self._task_results_arrays[team][user][full_t_name] = []
 
+            eartliest_submit_time = t_dur
+            
+            if t_type != "A":
+                for _, u_submits in submits[team].items():
+                    for s in u_submits[t_name]:
+                        if (s.c() == "T"):
+                            elapsed = s.elapsed()
+
+                            eartliest_submit_time = min(eartliest_submit_time, elapsed)
+
+            prev = None
             for r in results.results():
                 ts = r["timestamp"]
                 
                 # Does it lie in this task?
                 if (t_start > ts or ts > t_end):
                     continue
-                
+
                 # Fix some logs
                 self.validate_and_fix_log(r)
                 
                 elapsed = ts - t_start
+
+                #
+                # Cut logs after the submit
+                #
+                if ((elapsed/1000.0) > eartliest_submit_time):
+                    break
+
                 cats = r["usedCategories"]
                 types = r["usedTypes"]
                 values = r["values"]
@@ -488,10 +503,20 @@ class TaskResults:
                 pos_vid, pos_fr, rep = self.determine_positions(frames, t_target)
                                 
                 p = ResultPoint(c, ts, elapsed, values, pos_vid, pos_fr, rep)
-
+                prev = p
                 self._task_results[team][user][full_t_name].append(p)
 
-            pts = ResultPointsArrays(self._task_results[team][user][full_t_name])
+            if prev != None:
+                prev = copy.deepcopy(prev)
+                prev._elapsed = eartliest_submit_time * 1000
+                self._task_results[team][user][full_t_name].append(prev)
+
+            team_user_task_result_points = self._task_results[team][user][full_t_name]
+            team_user_task_sumarries = summaries.summary(team, user, full_t_name)
+
+            self.detect_changed_features(team_user_task_result_points, team_user_task_sumarries)
+
+            pts = ResultPointsArrays(team_user_task_result_points)
             self._task_results_arrays[team][user][full_t_name] = pts
 
     def determine_positions(self, xs, target):
@@ -526,3 +551,18 @@ class TaskResults:
         features = config.catypes_to_features(
             utils.generate_catype(cats, types))
         return features
+
+    def detect_changed_features(self, result_points : list, summary) -> list:
+        prev = None
+        for p in result_points:
+            if (prev==None):
+                return p.c()
+
+            cs = p.c()
+            cs_prev = prev.c()
+            changed = []
+            for c in cs:
+                if not c in cs_prev:
+                    changed.append(c)
+
+            return changed
