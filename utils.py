@@ -126,3 +126,25 @@ def cache_index_set(team_name):
     with open(cache_indexf_fpth, "w") as ofs:
         str = json.dumps(cache_index)
         ofs.write(str)
+
+def find_submit_positions(submit_times, times, vid_positions, reported):
+    submit_positions = []
+    submit_reported = []
+
+    for st in submit_times:
+        prev_t = 0.0
+        #print(f"search: {st}")
+        for i, t in enumerate(times):
+            #print(f"{prev_t} < {st} <= {t}")
+            if (prev_t < st and st <= t):
+                #print("->")
+                submit_positions.append(vid_positions[i])
+                submit_reported.append(reported[i])
+                break
+
+            prev_t = t
+
+    if len(submit_times) != len(submit_positions):        
+        raise Exception("Positon not found!")
+
+    return submit_positions, submit_reported

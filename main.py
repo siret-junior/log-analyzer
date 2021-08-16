@@ -73,7 +73,7 @@ class VbsVis:
    
     # --- Printers
 
-    def print_task_course(self, teams=None, users=None, tasks=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+    def print_task_course(self, teams=None, users=None, tasks=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780), events=["r", "s", "a"]):
         print("***############################***")
         print("***###*** TASK COURSES ***###***")
         print("***############################***")

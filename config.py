@@ -103,11 +103,15 @@ def name(instance_idx):
 def dir_names():
     return DIR_NAMES
 
-def out_dir(name):
-    if not (os.path.exists(OUT_DIRS[name])):
-        os.makedirs(OUT_DIRS[name], exist_ok=True)
+def out_dir(name, team=None):
+    path = OUT_DIRS[name]
+    if (team!=None):
+        path = os.path.join(path, team)
+
+    if not (os.path.exists(path)):
+        os.makedirs(path, exist_ok=True)
         
-    return OUT_DIRS[name]      
+    return path     
 
 def thumbs_dir():
     return THUMBS_DIR     

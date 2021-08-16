@@ -159,7 +159,7 @@ class ResultPoint:
         return (self._pos_vid, self._pos_fr, self._num_reported)
 
     def __str__(self):
-        s = f"\t\t###!!!### {(self.elapsed() / 1000):.2f} ###!!!###\n"
+        s = f"\t\t###!!!### {self.elapsed():.2f} ###!!!###\n"
         s += f"\t\t- REPORT RESULTS -\n"
         s += f"\t\t- {self.c()} -\n"
         s += f"\t\t- {self.positions()} -\n"
