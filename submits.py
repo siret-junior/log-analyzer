@@ -21,3 +21,16 @@ class UserSubmits:
     def submits(self):
         return self._submits
 
+
+class Verdicts:
+    def __init__(self, filepath):
+        print("%%% PARSING VERDICTS %%%")
+
+        # todo
+        SUBMIT2GUID = {}
+        GUID2VERDICT = {}
+
+        print("%%% DONE %%%")
+
+    def submit_to_verdict(self,ts, node):
+        return "W"

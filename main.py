@@ -18,8 +18,10 @@ from task_results import *
 from submits import *
 from summary import *
 
+
 class VbsVis:
     def __init__(self):
+
 
         # Load cached if available
         cached_file = os.path.join(config.cache_dir(), "vbs.pkl") 
@@ -30,21 +32,25 @@ class VbsVis:
             # pp.pprint(vars(cached_instance))
         
             self.verbose = cached_instance.verbose
+            self._rewrite = cached_instance._rewrite
             self._tasks = cached_instance._tasks
             self._raw_summaries = cached_instance._raw_summaries
             self._summaries = cached_instance._summaries
             self._results = cached_instance._results
             self._task_results = cached_instance._task_results
-
+            self._verdicts = cached_instance._verdicts
 
         # Else load everything
         else:
             self.verbose = False
+            self._rewrite = False
             self._tasks = TaskDefs.parse_tasks(config.TASKS_JSON,
                                             config.TASKS_STARTS,
                                             config.TASK_MAPPING,
                                             config.thumbs_list_filepath(),
                                             verbose=self.verbose)
+
+            self._verdicts = Verdicts(config.VERDICT_FILEPATH)
 
             self._raw_summaries = RawSummaries()
             self._summaries = Summaries(self._tasks)
@@ -93,9 +99,15 @@ class VbsVis:
                     
                     print(f"\t\t--- {task_name} ---\n")
 
-                    actions = list(map(lambda x: (x.elapsed(), x), self.summaries().summary(team, user, task_name, time, timestamp)))
-                    task_results = list(map(lambda x: (x.elapsed(), x), self.task_results().task_results(team, user, task_name, time, timestamp)))
-                    submits = list(map(lambda x: (x.elapsed(), x), self.task_results().task_submits(team, user, task_name, time, timestamp)))
+                    actions = []
+                    if ("a" in events):
+                        actions = list(map(lambda x: (x.elapsed(), x), self.summaries().summary(team, user, task_name, time, timestamp)))
+                    task_results = []
+                    if ("r" in events):
+                        task_results = list(map(lambda x: (x.elapsed(), x), self.task_results().task_results(team, user, task_name, time, timestamp)))
+                    submits = []
+                    if ("s" in events):
+                        submits = list(map(lambda x: (x.elapsed(), x), self.task_results().task_submits(team, user, task_name, time, timestamp)))
 
                     all = sorted(actions + submits + task_results, key= lambda x: x[0])
                     
@@ -106,6 +118,36 @@ class VbsVis:
                             print(x[1])
                         else:
                             print(x[1])
+
+    def task_course(self, team, user, task_name, time=(0.0, 99999.0), timestamp=(0, 16242180131780), events=["r", "s", "a"]):
+        
+        actions = []
+        if "a" in events:
+            actions = list(map(lambda x: (x.elapsed(), x), self.summaries().summary(team, user, task_name, time, timestamp)))
+        task_results = []
+        if "r" in events:
+            task_results = list(map(lambda x: (x.elapsed(), x), self.task_results().task_results(team, user, task_name, time, timestamp)))
+        submits = []
+        if "r" in events:
+            submits = list(map(lambda x: (x.elapsed(), x), self.task_results().task_submits(team, user, task_name, time, timestamp)))
+
+        all = sorted(actions + submits + task_results, key= lambda x: x[0])
+        
+        return all
+
+    def task_actions_array(self, team, user, task_name, time=(0.0, 99999.0), timestamp=(0, 16242180131780)):
+        
+        times = []
+        types = []
+        actions = self.task_course(team, user, task_name, time, timestamp, events=["a"])
+        
+        for el, a in actions:
+            times.append(a.elapsed())
+            types.append(a.action())
+
+        return times, types
+
+
 
     def print_tasks(self, tasks=None):
         self._tasks.print(tasks)
@@ -173,10 +215,13 @@ class VbsVis:
                    team_name: str,
                    team_names: list,
                    verbose=False,
+                   rewrite=False,
                    validate_fix=False,
                    generate_DRES=False,
                    validate_diff=False):
+
         self.verbose = verbose
+        self._rewrite = rewrite
 
         print("==============\nTEAM: {}\n".format(team_name))
 
@@ -198,6 +243,7 @@ class VbsVis:
         ###
 
         self.verbose = False
+        self._rewrite = False
 
     def parse_logs(self, team_name: str, team_names: list):
         print("%%% PARSING %%%")
@@ -273,7 +319,7 @@ class VbsVis:
 
         us = UserSubmits(submits)
         
-        self._task_results.push_user_submits(team, user_name, us)
+        self._task_results.push_user_submits(team, user_name, us, self._verdicts)
         print("\t--- DONE. ---")
 
     def parse_user_results(self, team, user_name, path, submits, summaries : Summaries):

@@ -3,6 +3,12 @@ COLORS = {
     1: "#FF8A38"
 }
 
+COLORS_CHAHGE = {
+    0: "#ff0000",
+    1: "#ff0000"
+}
+
+
 d_marker_random = {0:{"marker": r"$R$", "markerfacecolor": COLORS[0], "markeredgecolor": COLORS[0], "markersize": 5},
                    1:{"marker": r"$R$", "markerfacecolor": COLORS[1], "markeredgecolor": COLORS[1], "markersize": 5}}
 

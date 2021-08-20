@@ -1,6 +1,7 @@
 import os
 import pickle
 import datetime
+from submits import Verdicts
 from IPython.display import Image, display, HTML
 import shutil
 import config
@@ -83,7 +84,8 @@ def extract_text_query(text):
     return xx
 
 
-def determine_submit_result(r):
+def determine_submit_result(r, verdicts : Verdicts):
+    node = r["request"]["session"]
     c = None
 
     if (r["response"] == None):
@@ -99,11 +101,11 @@ def determine_submit_result(r):
             if (r["response"]["submission"] == "CORRECT"):
                 c = "T"
             elif (r["response"]["submission"] == "INDETERMINATE"):
-                c = "I"
+                c = verdicts.submit_to_verdict(r["timestamp"], node)
             else:
                 c = "F"
 
-    return c
+    return c, node
 
 
 def cache_index_get(team_name):
@@ -131,10 +133,14 @@ def find_submit_positions(submit_times, times, vid_positions, reported):
     submit_positions = []
     submit_reported = []
 
-    for st in submit_times:
+    for j, st in enumerate(submit_times):
         prev_t = 0.0
         #print(f"search: {st}")
         for i, t in enumerate(times):
+            if (st > times[-1]):
+                submit_times[j] = None
+                continue
+
             #print(f"{prev_t} < {st} <= {t}")
             if (prev_t < st and st <= t):
                 #print("->")
@@ -144,7 +150,25 @@ def find_submit_positions(submit_times, times, vid_positions, reported):
 
             prev_t = t
 
-    if len(submit_times) != len(submit_positions):        
-        raise Exception("Positon not found!")
+
+    
+    for i in range(len(submit_times)):
+        if None in submit_times:
+            submit_times.remove(None)
+
+        if len(submit_times) != len(submit_positions):     
+            print("vid_positions:")
+            pp.pprint(vid_positions)
+            print("submit_times:")
+            pp.pprint(submit_times)
+            print("times:")
+            pp.pprint(times)
+            print("submit_positions:")
+            pp.pprint(submit_positions)
+            
+            raise Exception("Positon not found!")
 
     return submit_positions, submit_reported
+
+
+

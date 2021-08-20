@@ -16,14 +16,19 @@ import config
 import utils
 
 from results import *
+from submits import *
 
 
 class SubmitPoint:
-    def __init__(self, c, ts, elapsed):
+    def __init__(self, c, ts, elapsed, node):
         self._class = c
 
         self._ts = ts
         self._elapsed = elapsed
+        self._node = node
+
+    def node(self):
+        return self._node
 
     def elapsed(self):
         return self._elapsed
@@ -73,35 +78,44 @@ class SubmitPointsArrays:
 class ResultPointsArrays:
     def __init__(self, points):
         self._class = []
+        self._class_changed = []
 
         self._ts = []
         self._elapsed = []
         self._pos_vid = []
         self._pos_fr = []
         self._num_reported = []
+        self._values = []
 
         self.submit_times = []
         self.submit_type = []
 
         for p in points:
             self._class.append(p.c())
+            self._class_changed.append(p.c_changed())
             self._ts.append(p.timestamp())
             self._elapsed.append(p.elapsed())
 
             a, b, c = p.positions()
-
+            self._values.append(p.value())
             self._pos_vid.append(a)
             self._pos_fr.append(b)
             self._num_reported.append(c)
+
+    def values(self):
+        return self._values
 
     def elapsed(self):
         return self._elapsed
 
     def timestamp(self):
-        return self._timestamp
+        return self._ts
 
     def c(self):
         return self._class
+
+    def c_changed(self):
+        return self._class_changed
 
     def vid(self):
         return self._pos_vid
@@ -131,7 +145,7 @@ class ResultPointsArrays:
 class ResultPoint:
     def __init__(self, c, ts, elapsed, value, pos_vid, pos_fr, num_reported):
         self._class = c
-        self._changed = None
+        self._changed = []
 
         self._ts = ts
         self._elapsed = elapsed
@@ -140,6 +154,7 @@ class ResultPoint:
         self._pos_vid = pos_vid
         self._pos_fr = pos_fr
         self._num_reported = num_reported
+
 
         
 
@@ -152,6 +167,9 @@ class ResultPoint:
     def c(self):
         return self._class
 
+    def c_changed(self):
+        return self._changed
+
     def value(self):
         return self._value
 
@@ -162,7 +180,9 @@ class ResultPoint:
         s = f"\t\t###!!!### {self.elapsed():.2f} ###!!!###\n"
         s += f"\t\t- REPORT RESULTS -\n"
         s += f"\t\t- {self.c()} -\n"
+        s += f"\t\t- {self.c_changed()} -\n"
         s += f"\t\t- {self.positions()} -\n"
+        s += f"\t\t- {self.value()} -\n"
         return s
 
 
@@ -176,7 +196,12 @@ class TaskResults:
         self._submits_arrays = {}
 
         self._classes = {}
+        self._classes_changed = {}
         self._queries = {}
+
+        
+        self._nodes = {}
+
 
     # ---
 
@@ -414,18 +439,22 @@ class TaskResults:
                     #print("TEMP")
                     r["usedTypes"].append("temporal")
         
-    def push_user_submits(self, team, user, submits):
+    def push_user_submits(self, team, user, submits, verdicts : Verdicts):
 
         if (not team in self._submits):
             self._submits[team] = {}
             self._submits_arrays[team] = {}
-        
+            self._nodes[team] = {}
+    
+        self._nodes[team][user] = set()
         self._submits[team][user] = {}
         self._submits_arrays[team][user] = {}
         
         i = 0
         for task in self._tasks.tasks():
             i+=1
+            t_dur = task.duration()
+            t_type = task.type()
             t_name = task.name()
             t_start, t_end = task.timestamps()
             t_target = task.target()
@@ -443,12 +472,14 @@ class TaskResults:
                 if (t_start > ts or ts > t_end):
                     continue
             
-                c = utils.determine_submit_result(r)
+
+                c, node = utils.determine_submit_result(r, verdicts)
+                self._nodes[team][user].add(node)
 
                 if (c == None):
                     pp.pprint(r)
 
-                s = SubmitPoint(c, ts, elapsed)
+                s = SubmitPoint(c, ts, elapsed, node)
 
                 self._submits[team][user][full_t_name].append(s)
 
@@ -463,6 +494,7 @@ class TaskResults:
             self._task_results[team] = {}
             self._task_results_arrays[team] = {}
             self._classes[team] = set()
+            self._classes_changed[team] = set()
         
         self._task_results[team][user] = {}
         self._task_results_arrays[team][user] = {}
@@ -572,16 +604,109 @@ class TaskResults:
         return features
 
     def detect_changed_features(self, result_points : list, summary) -> list:
+        changeds = []
+        i_s = 0
+
         prev = None
-        for p in result_points:
-            if (prev==None):
-                return p.c()
+        prev_time = 0
+        for ii, p in enumerate(result_points):
+            if (ii >= len(result_points) - 1):
+                break
 
-            cs = p.c()
-            cs_prev = prev.c()
             changed = []
-            for c in cs:
-                if not c in cs_prev:
-                    changed.append(c)
+            fr = prev_time
+            to = p.elapsed()
 
-            return changed
+            while summary[i_s].elapsed() <= fr:
+                
+                #print(f"{summary[i_s].elapsed()} <= {fr}")
+                i_s +=1
+
+            like = False
+            text_change = True
+
+            all = False
+
+            int_actions = []
+            while i_s < len(summary) and summary[i_s].elapsed() < to:
+                #print(f"{summary[i_s].elapsed()} < {to}")
+                s = summary[i_s]
+                int_actions.append((s.elapsed(), s.action()))
+                i_s +=1
+
+                if (s.action() == "resetAll"):
+                    all = True
+                if (s.action() == "like"):
+                    like = True
+                if (s.action() == "textQueryChange"):
+                    text_change = True
+
+            prev_cs = prev.c() if prev !=None else []
+            curr_cs = p.c()
+
+            if all or (len(curr_cs) == 1):
+                changed = curr_cs
+      
+            elif prev !=None: 
+       
+                if (prev.c() == p.c()):
+              
+
+                    if "NN" in curr_cs:
+                        changed.append("NN")
+                    if (like):
+                        changed.append("LK")
+
+                    if (text_change and (p.value() != prev.value() or p.positions() == prev.positions())):
+                   
+                        if "TQ" in curr_cs:
+                            changed.append("TQ.")
+                        if "TTQ" in curr_cs:
+                            changed.append("TTQ")
+
+                    # Exclusion method
+                    if (len(changed) == 0):
+                        
+
+                        cc = copy.copy(curr_cs)
+                        if "LK" in cc:
+                            cc.remove("LK")
+                        if "FDP" in cc:
+                            cc.remove("FDP")
+                        if "TQ" in cc:
+                            cc.remove("TQ")
+                        if "TTQ" in cc:
+                            cc.remove("TTQ")
+
+                        if (len(cc) == 1):
+                            changed=cc
+                        else:
+                            print(">>>>>>")
+                            print(prev)
+                            print(p)
+                            print(">>>>>>")
+                            raise Exception("Cannot unambiguously determine the change!")
+                            #pp.pprint(cc)
+                else:
+                    
+                    for c in curr_cs:
+                        if not (c in prev_cs):
+                            changed.append(c)
+
+            else:
+                changed = p.c()
+
+            #
+            # Debug print
+            #
+            # if (len(changed) == 0):
+            #     print("~~~~~~~")
+            #     #pp.pprint(int_actions)
+            #     print(prev.c() if prev != None else "-")
+            #     print(p.c())
+            #     print("=>>")
+            #     print(changed)
+
+            p._changed = changed
+            prev = p
+            prev_time = p.elapsed()
