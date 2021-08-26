@@ -66,7 +66,7 @@ def plot_relocation_mark(plt, x, y, changed, color, color_c, o_x=0, o_y=0, len=3
     xx = x - 3 
     xx2 = x + w
 
-    plot_arrow(plt, xx, y, xx2, y, color_c if changed else color, o_x=0, o_y=0.9, len=360)
+    plot_arrow(plt, xx, y, xx2, y, color_c if changed else color, o_x=0, o_y=0.5, len=360)
     
 
 def plot_canvas_mark(plt, x, y, changed, color, color_c):
@@ -200,4 +200,4 @@ def plot_like_mark(plt, x, y, changed, color, color_c, o_x=0, o_y=0, len=360):
         "alpha": 0.9
     }
     #plot_mark(plt, x, y, marker_bg_pink, o_x + 0.4, o_y + 0.4)
-    plot_mark(plt, x , y , marker_params, o_x+ 0.4, o_y + 0.4, len, p=False)
+    plot_mark(plt, x , y , marker_params, o_x+ 0.5, o_y - 0.2, len, p=False)

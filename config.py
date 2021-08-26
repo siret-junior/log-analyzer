@@ -26,7 +26,8 @@ THUMBS_LIST_DIR = DATA_DIR + "thumbs.txt"
 
 OUT_DIRS = {
     "dres": "./out/dres",
-    "timelines": "./out/timelines"
+    "timelines": "./out/timelines",
+    "positioned": "./out/positioned"
 }
 
 TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
@@ -254,6 +255,16 @@ ALL_TEAMS2HASH = {
     "IVOS": "8488d7cb-736a-4c7b-8113-a892b09e15cc",
     "EOLAS": "a88dc70e-d120-4262-b8a0-7f579f372b7c"
 }
+
+def get_loc_dic(type=None):
+    if type==None:
+        return os.path.join(DATA_DIR, "located")
+    elif type == "bitmap-canvas":
+        return os.path.join(DATA_DIR, "located", "bitmap-canvas-benchmark.csv")
+    elif type == "text-canvas":
+        return os.path.join(DATA_DIR, "located", "text-canvas-benchmark.csv")
+    elif type == "relocation":
+        return os.path.join(DATA_DIR, "located", "relocation-benchmark.csv")
 
 def avs_pos():
     return 10

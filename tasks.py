@@ -126,6 +126,22 @@ class TaskDefs:
             if (t.name() == name):
                 return t
 
+    def to_CSV(self, file):
+        with open(file, "w", newline="") as ofs:
+            writer = csv.writer(ofs, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["task_name", "task_type", "timestamp_from", "timestamp_to", "video_ID_starts_from_1", "frame_from", "frame_to"])
+            for t in self._tasks:
+                if (t.target() != None):
+                    t_name = t.name()
+                    t_type = t.type()
+                    ts_from, ts_to = t.timestamps()
+                    v_ID = t.target().video_ID()
+                    fr, to = t.target().interval()
+
+                    writer.writerow([t_name, t_type, ts_from, ts_to, v_ID, int(fr), int(to)])
+
+
+
 
     def print(self, tasks=None):
         print("***############################***")

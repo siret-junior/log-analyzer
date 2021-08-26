@@ -152,6 +152,9 @@ class VbsVis:
     def print_tasks(self, tasks=None):
         self._tasks.print(tasks)
 
+    def task_to_CSV(self, file):
+        self._tasks.to_CSV(file)
+
     def print_results(self, team, user, fr, to):
         self.results().print_results(team, user, fr, to)
 
