@@ -77,6 +77,78 @@ class VbsVis:
     def tasks(self) -> TaskDefs:
         return self._tasks
    
+    def get_relevance_feedback_transitions(self, teams=None, users=None, tasks=None, 
+        time=(0.0, 99999.0), timestamp=(0, 16242180131780), all=True, 
+        file=None, file2=None, file_all=None, max=1154038
+        ):
+
+        # ANY-> liked
+        any2liked = []
+        # liked-> liked
+        liked2liked = []
+
+        for team, team_dict in self.summaries().summaries().items():
+            if ((teams != None) and (not (team in teams))):
+                continue
+            
+            for user, task_actions in team_dict.items():
+                if ((users != None) and (not (user in users))):
+                    continue
+                    
+                for task_name, actions in task_actions.items():
+                    if ((tasks != None) and (not (task_name in tasks))):
+                        continue
+                    
+                    task_results = self.task_results().task_results(team, user, task_name, time, timestamp)
+
+                    prev = None
+                    prev_changed = []
+                    for r in task_results:
+                        changed = r.c_changed()
+                        pos_vid, pos_frame, _ = r.positions()
+
+                        unpos_vid,unpos_frame, _ = prev.positions() if (prev != None) else (max, max, 0)
+                        if (pos_vid == None):
+                            continue
+                        
+                        if "LK" in changed and len(changed) == 1 and (not "NN" in prev_changed):
+                            if (not "LK" in prev_changed):
+                                trans = f"{prev_changed} -> {changed}"
+                                
+                                any2liked.append([r.timestamp(), user, pos_vid, pos_frame, unpos_vid, unpos_frame, trans])
+                            else:
+                                if all:                                    
+                                    liked2liked.append([r.timestamp(), user, pos_vid, pos_frame, unpos_vid, unpos_frame, trans])
+
+                        prev = r
+                        prev_changed = changed
+
+        if (file!= None):
+            with open(file, "w", newline="") as ofs:
+                writer = csv.writer(ofs, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(["ID","user","pos_video","pos_frame","unpos_video","unpos_frame"])
+                for x in any2liked:
+                    writer.writerow(x)
+
+        if (file2!= None):
+            with open(file2, "w", newline="") as ofs:
+                writer = csv.writer(ofs, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(["ID","user","pos_video","pos_frame","unpos_video","unpos_frame"])
+                for x in liked2liked:
+                    writer.writerow(x)
+
+        if (file_all!= None):
+            with open(file_all, "w", newline="") as ofs:
+                writer = csv.writer(ofs, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(["ID","user","pos_video","pos_frame","unpos_video","unpos_frame"])
+                for x in any2liked:
+                    writer.writerow(x)
+
+                for x in liked2liked:
+                    writer.writerow(x)
+
+        return any2liked + liked2liked
+
     # --- Printers
 
     def print_task_course(self, teams=None, users=None, tasks=None, time=(0.0, 99999.0), timestamp=(0, 16242180131780), events=["r", "s", "a"]):

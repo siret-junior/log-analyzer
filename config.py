@@ -27,7 +27,8 @@ THUMBS_LIST_DIR = DATA_DIR + "thumbs.txt"
 OUT_DIRS = {
     "dres": "./out/dres",
     "timelines": "./out/timelines",
-    "positioned": "./out/positioned"
+    "positioned": "./out/positioned",
+    "relevance": "./data/located",
 }
 
 TASKS_JSON = os.path.join(DATA_DIR, "tasks.json")
@@ -265,9 +266,17 @@ def get_loc_dic(type=None):
         return os.path.join(DATA_DIR, "located", "text-canvas-benchmark.csv")
     elif type == "relocation":
         return os.path.join(DATA_DIR, "located", "relocation-benchmark.csv")
+    elif type == "relevance-feedback-nonliked":
+        return os.path.join(DATA_DIR, "located", "relevance-feedback-transitions-from-nonliked.csv") 
+    elif type == "relevance-feedback-all":
+        return os.path.join(DATA_DIR, "located", "relevance-feedback-transitions-all.csv") 
+    elif type == "relevance-feedback-liked":
+        return os.path.join(DATA_DIR, "located", "relevance-feedback-transitions-from-liked.csv") 
 
 def avs_pos():
     return 10
+def max_pos():
+    return 1154038
 
 def names_features(x):
     return FEATURES[x]

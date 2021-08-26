@@ -579,8 +579,8 @@ class TaskResults:
         t_from, t_to = target.interval()
 
 
-        f_pos = 10000000
-        v_pos = 10000000
+        f_pos = config.max_pos()
+        v_pos = config.max_pos()
 
         i = 0
         for x in xs:
